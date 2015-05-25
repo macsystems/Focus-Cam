@@ -20,14 +20,14 @@ import de.macsystems.camera.R;
 
 public class CameraActivity extends Activity implements SurfaceHolder.Callback, SensorEventListener {
 
+    /**
+     * Movement must be greater than this value to start re-focus
+     */
+    private static final double THRESHOLD = 1.08;
+    private final AutoFocus focus = new AutoFocus();
     private SurfaceView surfaceView;
-
     private volatile Camera camera;
-
     private SensorManager sensorManager;
-
-    private AutoFocus focus = new AutoFocus();
-
     private volatile boolean needsFocus = false;
 
     private TextView statusText;
@@ -92,10 +92,9 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback, 
             }
         }
 
-        throw new RuntimeException("No cam found:"+ Arrays.toString(infos));
+        throw new RuntimeException("No cam found:" + Arrays.toString(infos));
 
     }
-
 
 
     @Override
@@ -108,7 +107,7 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback, 
         //
         final Camera.Parameters params = camera.getParameters();
         final String bestFocusMode = findFocusMode(params.getSupportedFocusModes());
-        focusMode.setText("Mode :"+bestFocusMode);
+        focusMode.setText("Mode :" + bestFocusMode);
 
         params.setFocusMode(bestFocusMode);
         camera.setParameters(params);
@@ -116,23 +115,17 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback, 
     }
 
     private String findFocusMode(List<String> focusMode) {
-        if(focusMode.size() == 1)
-        {
+        if (focusMode.size() == 1) {
             return focusMode.get(0);
         }
-        if(focusMode.contains(Camera.Parameters.FOCUS_MODE_AUTO))
-        {
+        if (focusMode.contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
             return Camera.Parameters.FOCUS_MODE_AUTO;
-        }
-        else if(focusMode.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE))
-        {
+        } else if (focusMode.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
             return Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE;
-        }
-        else if(focusMode.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO))
-        {
+        } else if (focusMode.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO)) {
             return Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO;
         }
-        throw new RuntimeException("No focus modes found that are good: "+Arrays.toString(focusMode.toArray()));
+        throw new RuntimeException("No focus modes found that are good: " + Arrays.toString(focusMode.toArray()));
     }
 
     @Override
@@ -163,12 +156,10 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback, 
 
         final float movement = (x * x + y * y + z * z)
                 / (SensorManager.GRAVITY_EARTH * SensorManager.GRAVITY_EARTH);
-        if (movement >= 1.08 && !needsFocus) {
+        if (movement >= THRESHOLD && !needsFocus) {
             needsFocus = true;
             camera.autoFocus(focus);
             statusText.setText("Autofocus : Focusing started");
-
-            //Log.d(getClass().getSimpleName(), "accelationSquareRoot: " + movement);
         }
     }
 
